@@ -1,6 +1,6 @@
 # BFMC Vision Training
 
-Bare-bones test code for a training pipeline on object detection models using a BFMC (Bosch Future Mobility Challenge) dataset which features navigation challeneges in smart cities.
+Bare-bones test code for a training pipeline on object detection models using a BFMC (Bosch Future Mobility Challenge) dataset which features autonomous navigation challenges in smart cities.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
