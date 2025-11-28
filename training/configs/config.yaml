@@ -1,0 +1,68 @@
+# BFMC Vision Training Configuration
+# RTX 4090 optimized settings
+
+# Dataset paths
+dataset:
+  data_yaml: "../dataset/data.yaml"
+  train: "../dataset/train"
+  val: "../dataset/valid"
+  test: "../dataset/test"
+
+# Training parameters (optimized for RTX 4090 24GB)
+training:
+  epochs: 100
+  batch_size: 16
+  imgsz: 640
+  patience: 20
+  workers: 8
+  device: 0
+  amp: true  # Automatic mixed precision
+  cache: true  # Cache images in RAM for faster training
+
+# Model-specific configurations
+models:
+  yolov8:
+    name: "yolov8n"  # Options: yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
+    pretrained: true
+
+  yolov11:
+    name: "yolo11n"  # Options: yolo11n, yolo11s, yolo11m, yolo11l, yolo11x
+    pretrained: true
+
+  rtdetr:
+    name: "rtdetr-l"  # Options: rtdetr-l, rtdetr-x
+    pretrained: true
+
+# Optimization
+optimizer:
+  name: "AdamW"
+  lr0: 0.01
+  lrf: 0.01
+  momentum: 0.937
+  weight_decay: 0.0005
+
+# Augmentation
+augmentation:
+  hsv_h: 0.015
+  hsv_s: 0.7
+  hsv_v: 0.4
+  degrees: 0.0
+  translate: 0.1
+  scale: 0.5
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0
+  fliplr: 0.5
+  mosaic: 1.0
+  mixup: 0.0
+
+# Inference settings
+inference:
+  conf_threshold: 0.25
+  iou_threshold: 0.45
+  max_det: 300
+
+# Output paths
+output:
+  results_dir: "results"
+  models_dir: "models"

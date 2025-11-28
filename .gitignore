@@ -1,0 +1,142 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# PyTorch / ML
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.torchscript
+*.pb
+
+# Training outputs
+training/results/*/
+training/runs/
+training/models/exported/
+!training/results/pretrained_models/
+
+# Keep pretrained models but ignore downloaded weights in other locations
+*.pt
+!training/models/pretrained/*.pt
+
+# SAM2 outputs
+bfmc_sam2_refinement/output/
+bfmc_sam2_refinement/demo*/
+bfmc_sam2_refinement/sam2_demo*/
+bfmc_sam2_refinement/*.jpg
+bfmc_sam2_refinement/*.png
+
+# Dataset (too large for git)
+dataset/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+
+# But keep example images and documentation images if needed
+!docs/**/*.png
+!docs/**/*.jpg
+!*.md.png
+!assets/**/*.png
+!assets/**/*.jpg
+
+# TensorBoard logs
+runs/
+logs/
+events.out.tfevents.*
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ROS
+build/
+devel/
+*.bag
+*.bag.active
+
+# System files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Monitoring outputs
+*.csv
+!training/results/model_comparison.csv
+!training/results/**/results.csv
+
+# Video outputs
+*.mp4
+*.avi
+*.mov
+
+# Temporary files
+temp/
+tmp/
+*.cache
+
+# Evaluation outputs (keep comparison reports)
+training/results/comparison_*.png
+training/results/per_class_*.png
+!training/results/comparison_report.md
+
+# Deployment builds
+deployment/build/
+deployment/devel/
+deployment/*.pyc
+
+# SAM2 installation (if cloned locally)
+segment-anything-2/
+
+# User-specific files
+.env
+.env.local
+secrets.yaml
+credentials.json
+
+# Test outputs
+test_outputs/
+debug_images/
+
+# Documentation builds
+docs/_build/
+site/
