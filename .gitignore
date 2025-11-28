@@ -48,13 +48,6 @@ training/models/exported/
 *.pt
 !training/models/pretrained/*.pt
 
-# SAM2 outputs
-bfmc_sam2_refinement/output/
-bfmc_sam2_refinement/demo*/
-bfmc_sam2_refinement/sam2_demo*/
-bfmc_sam2_refinement/*.jpg
-bfmc_sam2_refinement/*.png
-
 # Dataset (too large for git)
 dataset/
 *.jpg
