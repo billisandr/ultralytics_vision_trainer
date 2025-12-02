@@ -60,7 +60,7 @@ Training pipeline for YOLOv8, YOLOv11, and RT-DETR models on the BFMC autonomous
 ## Project Structure
 
 ```txt
-bfmc_vision_bare-bones/
+bfmc_vision_simple/
 ├── training/                    # Model training and evaluation
 │   ├── scripts/                 # Train, evaluate, inference scripts
 │   │   ├── train.py             # Training script
