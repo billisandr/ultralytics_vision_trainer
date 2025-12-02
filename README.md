@@ -24,6 +24,17 @@ This project uses the **BFMC Dataset v13** provided by **Team DriverIES** on Rob
 
 ---
 
+## AI-Assisted Development
+
+**LLM Usage**: This project was developed with assistance from Claude (Anthropic). While efforts have been made to ensure code quality and correctness:
+
+- **Use with Caution**: Review and test all code thoroughly before deployment
+- **No Warranty**: Code is provided "as-is" without guarantees
+- **Verify Results**: Always validate model performance and system behavior
+- **Safety Critical**: Extra caution required for autonomous driving applications
+
+---
+
 ## Overview
 
 Training pipeline for YOLOv8, YOLOv11, and RT-DETR models on the BFMC autonomous driving dataset.
