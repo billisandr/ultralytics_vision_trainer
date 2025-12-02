@@ -1,4 +1,4 @@
-# BFMC Vision Training
+# BFMC Vision Training & Evaluation
 
 Bare-bones test code for a training pipeline on object detection models using a BFMC (Bosch Future Mobility Challenge) dataset which features autonomous navigation challenges in smart cities.
 
