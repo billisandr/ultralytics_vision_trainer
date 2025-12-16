@@ -2,11 +2,11 @@
 
 Bare-bones test code for a training pipeline on object detection models using a BFMC (Bosch Future Mobility Challenge) dataset which features autonomous navigation challenges in smart cities.
 
-**Part of research conducted at the [SenseLAB](http://senselab.tuc.gr/) of the Technical University of Crete.**
+> Developed at the [SenseLAB](http://senselab.tuc.gr/) of the [Technical University of Crete](https://www.tuc.gr/el/archi)
 
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ---
 
 ## About BFMC
