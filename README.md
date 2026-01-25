@@ -547,6 +547,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Ultralytics** - YOLO implementation
 - **Roboflow** - Dataset hosting and tools
 - **BFMC Team** - Competition organization
-- **Team DriverIES** - Dataset creation
+- **Team DriverIES** - Dataset example
 
 ---
