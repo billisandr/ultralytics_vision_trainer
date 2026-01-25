@@ -1,11 +1,15 @@
-#!/usr/bin/env python3
 """
 Post-Training Evaluation Script
 Evaluates a trained model checkpoint on Test and Validation sets,
 and generates loss/performance curves from training history.
 
-Usage:
-    python3 evaluate_checkpoint.py --model_dir path/to/training/result/folder
+Capabilities:
+1. Verify Training: Validates a specific checkpoint on both Test and Val splits
+2. Plot History: Generates Loss and mAP curves from `results.csv` (Train vs Val)
+3. Auto-Config: Automatically finds dataset and parameters from `args.yaml` inside the model folder
+
+Usage Examples:
+    python3 scripts/evaluate_checkpoint.py --model_dir results/yolov8s_
 """
 
 import argparse

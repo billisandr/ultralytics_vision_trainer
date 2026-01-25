@@ -1,68 +1,67 @@
 # BFMC Vision Training Configuration
-# RTX 4090 optimized settings
 
 # Dataset paths
 dataset:
-  data_yaml: "../dataset/dataset2_total2026/data.yaml"
-  train: "../dataset/dataset2_total2026/train"
-  val: "../dataset/dataset2_total2026/valid"
-  test: "../dataset/dataset2_total2026/test"
+  data_yaml: "../dataset/dataset2_total2026/data.yaml" # Path to data definition file
+  train: "../dataset/dataset2_total2026/train" # Training images directory
+  val: "../dataset/dataset2_total2026/valid"   # Validation images directory
+  test: "../dataset/dataset2_total2026/test"   # Test images directory (held out)
 
 # Training parameters (optimized for RTX 4090 24GB)
 training:
-  epochs: 100
-  batch_size: 16
-  imgsz: 640
-  patience: 20
-  workers: 16
-  device: 0
-  amp: true  # Automatic mixed precision
-  cache: true  # Cache images in RAM for faster training
+  epochs: 100         # Total training passes over the dataset
+  batch_size: 16      # Images per batch (Increase if VRAM allows, decrease if OOM)
+  imgsz: 640          # Input image resolution (640x640 is standard YOLO)
+  patience: 20        # Stop early if no improvement for N epochs
+  workers: 16         # Dataloader threads (Set close to CPU core count)
+  device: 0           # GPU ID (0 for first GPU, 'cpu' for CPU)
+  amp: true           # Automatic Mixed Precision (Faster, less VRAM)
+  cache: true         # Cache images in RAM (Faster, uses more System RAM)
 
 # Model-specific configurations
 models:
   yolov8:
-    name: "yolov8n"  # Options: yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
-    pretrained: true
+    name: "yolov8n"   # Base model (n=nano, s=small, m=medium, l=large, x=extra large)
+    pretrained: true  # Start with COCO weights (Recommended)
 
   yolov11:
-    name: "yolo11n"  # Options: yolo11n, yolo11s, yolo11m, yolo11l, yolo11x
+    name: "yolo11n"   # Newest architecture (Better accuracy/speed than v8)
     pretrained: true
 
   rtdetr:
-    name: "rtdetr-l"  # Options: rtdetr-l, rtdetr-x
+    name: "rtdetr-l"  # Transformer-based model (Better for small objects, slower)
     pretrained: true
 
-# Optimization
+# Optimization (Hyperparameters)
 optimizer:
-  name: "AdamW"
-  lr0: 0.01
-  lrf: 0.01
-  momentum: 0.937
-  weight_decay: 0.0005
+  name: "AdamW"       # Optimizer type (AdamW, SGD, etc.)
+  lr0: 0.01           # Initial learning rate
+  lrf: 0.01           # Final learning rate fraction (lr0 * lrf)
+  momentum: 0.937     # SGD momentum/Adam beta1
+  weight_decay: 0.0005 # L2 regularization term
 
-# Augmentation
+# Augmentation (Data generation during training)
 augmentation:
-  hsv_h: 0.015
-  hsv_s: 0.7
-  hsv_v: 0.4
-  degrees: 0.0
-  translate: 0.1
-  scale: 0.5
-  shear: 0.0
-  perspective: 0.0
-  flipud: 0.0
-  fliplr: 0.5
-  mosaic: 1.0
-  mixup: 0.0
+  hsv_h: 0.015        # Hue shift (fraction) - Simulates different lighting colors
+  hsv_s: 0.7          # Saturation shift (fraction)
+  hsv_v: 0.4          # Value (brightness) shift (fraction)
+  degrees: 0.0        # Rotation (+/- degrees)
+  translate: 0.1      # Translation (+/- fraction of image size)
+  scale: 0.5          # Scale gain (+/- gain) - Zooms in/out
+  shear: 0.0          # Shear angle (+/- degrees)
+  perspective: 0.0    # Perspective distortion (+/- fraction), range 0-0.001
+  flipud: 0.0         # Probability of vertical flip (up-down)
+  fliplr: 0.5         # Probability of horizontal flip (left-right)
+  mosaic: 1.0         # Probability of mosaic (combining 4 images) - Strong learner
+  mixup: 0.0          # Probability of mixup (blending images)
 
-# Inference settings
+# Inference settings (Validation/Testing thresholds)
 inference:
-  conf_threshold: 0.25
-  iou_threshold: 0.45
-  max_det: 300
+  conf_threshold: 0.75 # Minimum confidence to count as detection
+  iou_threshold: 0.45  # IoU threshold for NMS (removing duplicate boxes)
+  max_det: 300         # Maximum objects detected per image
 
 # Output paths
 output:
-  results_dir: "results"
-  models_dir: "models"
+  results_dir: "results" # Directory for training runs and comparisons
+  models_dir: "models"   # Directory for exported models

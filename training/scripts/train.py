@@ -1,7 +1,17 @@
-#!/usr/bin/env python3
 """
 BFMC Vision Model Training Script
 Train YOLOv8, YOLOv11, or RT-DETR models on BFMC dataset.
+
+Capabilities:
+1. Train Models: Supports YOLOv8, YOLOv11, RT-DETR (n/s/m/l/x variants)
+2. Auto-Validation: Automatically runs validation on the best model after training and saves to `train_eval/`
+3. Auto-Download: Fetches pretrained weights if not found locally
+4. Path Management: Automatically resolves dataset paths relative to the project structure
+
+Usage Examples:
+    python3 scripts/train.py --model yolov8n --epochs 100
+    python3 scripts/train.py --model yolo11x --batch-size 16
+    python3 scripts/train.py --model rtdetr-l --data ../dataset/custom.yaml
 """
 
 import argparse

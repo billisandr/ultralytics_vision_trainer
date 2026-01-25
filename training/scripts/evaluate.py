@@ -1,7 +1,17 @@
-#!/usr/bin/env python3
 """
 BFMC Vision Model Evaluation and Comparison Script
 Evaluate trained models and generate comparison reports.
+
+Capabilities:
+1. Compare Models: Evaluates multiple models side-by-side on the Test set
+2. Generate Reports: Creates markdown reports, bar charts, and heatmaps (mAP50, mAP50-95)
+3. Robust Resolution: Automatically detects the correct dataset from `args.yaml` for each model
+4. Pretrained Comparison: Can include baseline pretrained models in the comparison
+
+Usage Examples:
+    python3 scripts/evaluate.py --weights results/yolov8_*/weights/best.pt results/yolo11_*/weights/best.pt
+    python3 scripts/evaluate.py --include-pretrained  # Compare all results/ models + baselines
+    python3 scripts/evaluate.py --output results/my_comparison_v1
 """
 
 import argparse

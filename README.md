@@ -62,49 +62,46 @@ Training pipeline for YOLOv8, YOLOv11, and RT-DETR models on the BFMC autonomous
 
 ```txt
 bfmc_vision_simple/
-├── training/                    # Model training and evaluation
-│   ├── scripts/                 # Train, evaluate, inference scripts
-│   │   ├── train.py             # Training script
-│   │   ├── evaluate.py          # Model evaluation & comparison
-│   │   ├── inference.py         # Inference & export
-│   │   ├── train_all_models.sh  # Sequential training
-│   │   └── check_split_quality.py # Dataset validation
+├── training/                       # Model training logic
+│   ├── scripts/                    # Core scripts
+│   │   ├── train.py                # Training script
+│   │   ├── evaluate.py             # Model comparison
+│   │   ├── evaluate_checkpoint.py  # Single model verification
+│   │   └── inference.py           # Inference & export
+│   │   
 │   ├── configs/
 │   │   └── config.yaml          # Training configuration
-│   ├── utils/                   # Dataset analysis, visualization tools
-│   │   ├── data.py              # Dataset analysis
-│   │   ├── visualize.py         # Per-class plots, heatmaps
-│   │   └── video.py             # Video processing
-│   ├── results/                 # Training outputs and metrics
-│   ├── models/                  # Exported models
-│   └── runs/                    # Ultralytics outputs
+│   ├── utils/                   # Helper utilities
+│   └── models/
+│       └── pretrained/          # Downloaded weights (yolov8n.pt, etc.)
 │
-├── dataset/                     # BFMC vision dataset (YOLO format)
-│   ├── train/                   # 7,752 training images
-│   ├── valid/                   # 437 validation images
-│   ├── test/                    # 320 test images
+├── results/                     # Training & Evaluation outputs
+│   ├── yolov8n_2024.../         # Individual training run
+│   │   ├── weights/             # Best/last checkpoints
+│   │   └── train_eval/          # Auto-validation results
+│   └── comp_eval_.../           # Comparison reports
+│
+├── dataset/                     # BFMC vision dataset
+│   ├── train/                   # Training images
+│   ├── valid/                   # Validation images
+│   ├── test/                    # Test images
 │   └── data.yaml                # Dataset configuration
 │
-└── assets/                      # Training visualizations
-    ├── training/                # Training result images
-    └── comparison/              # Model comparison plots
+└── assets/                      # Documentation assets
 ```
 
 ---
 
 ## Training
 
-### Train All Models
+The `train.py` script handles model training, auto-downloading weights, and validating the best model.
 
-```bash
-cd training
+**Capabilities:**
 
-# Train all three models sequentially
-python3 scripts/train.py --model all
-
-# Or use the shell script
-bash scripts/train_all_models.sh
-```
+1. **Train Models**: Supports YOLOv8, YOLOv11, RT-DETR (n/s/m/l/x variants).
+2. **Auto-Validation**: Automatically runs validation on the best model after training and saves to `train_eval/`.
+3. **Auto-Download**: Fetches pretrained weights if not found locally.
+4. **Path Management**: Automatically resolves dataset paths relative to the project structure.
 
 ### Train Specific Models
 
@@ -157,7 +154,31 @@ It is important to distinguish between the metrics generated during training and
   - The `evaluate_checkpoint.py` script explicitly runs evaluation on the **Test Set** (unseen data).
   - The outputs in the `post_eval/test` folder reflect the model's performance on this held-out dataset, providing the most accurate estimate of real-world performance.
 
+### Single Model Verification
+
+The `evaluate_checkpoint.py` script is designed for verifying a specific training run.
+
+**Capabilities:**
+
+1. **Verify Training**: Validates a specific checkpoint on both Test and Val splits.
+2. **Plot History**: Generates Loss and mAP curves from `results.csv` (Train vs Val).
+3. **Auto-Config**: Automatically finds dataset and parameters from `args.yaml` inside the model folder.
+
+```bash
+# Verify a specific training run
+python3 scripts/evaluate_checkpoint.py --model_dir results/yolov8s_20260125_123522
+```
+
 ### Compare Models
+
+The `evaluate.py` script compares multiple models side-by-side.
+
+**Capabilities:**
+
+1. **Compare Models**: Evaluates multiple models side-by-side on the Test set.
+2. **Generate Reports**: Creates markdown reports, bar charts, and heatmaps (mAP50, mAP50-95).
+3. **Robust Resolution**: Automatically detects the correct dataset from `args.yaml` for each model.
+4. **Pretrained Comparison**: Can include baseline pretrained models in the comparison.
 
 ```bash
 cd training
@@ -180,6 +201,29 @@ python3 scripts/evaluate.py --weights results/yolov8_*/weights/best.pt results/y
 - `results/per_class_ap50_heatmap.png` - AP50 heatmap
 - `results/per_class_ap50-95_comparison.png` - AP50-95 bar chart
 - `results/per_class_ap50-95_heatmap.png` - AP50-95 heatmap
+
+### Understanding the Outputs (Plots & Metrics)
+
+The training and evaluation scripts generate several key plots:
+
+**Training Plots (`results/`):**
+
+- **`results.png`**: Summary of Loss, Precision, Recall, and mAP over epochs.
+- **`confusion_matrix.png`**: Shows which classes are being confused with others. Diagonal is good.
+- **`BoxPR_curve.png`**: Precision-Recall curve. Top-right is better.
+- **`F1_curve.png`**: F1 score vs Confidence. Peak F1 shows the optimal confidence threshold.
+
+**Evaluation Plots (`post_eval/history_plots/`):**
+
+- **`loss_curves.png`**: **Train vs. Validation Loss**.
+  - If Train Loss keeps dropping but Val Loss goes up -> **Overfitting**.
+  - If both stay high -> **Underfitting**.
+- **`metrics_curves.png`**: mAP50 and mAP50-95 over epochs.
+
+**Comparison Plots (`results/comp_eval_.../`):**
+
+- **`per_class_ap50_comparison.png`**: Bar chart showing which model is best for *each specific class*.
+- **`per_class_ap50_heatmap.png`**: Visual heatmap of performance. Darker/Redder usually means higher accuracy depending on the colormap.
 
 ### Qualitative Ratings
 
