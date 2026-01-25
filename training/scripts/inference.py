@@ -11,6 +11,7 @@ Usage Examples:
     python3 scripts/inference.py --weights results/yolov8_best.pt
     python3 scripts/inference.py --weights results/yolov8_best.pt --camera 0
     python3 scripts/inference.py --weights results/yolov8_best.pt --source video.mp4 --save
+    python3 scripts/inference.py --weights results/yolov8_best.pt --source video.mp4 --delay 50
     python3 scripts/inference.py --weights results/yolov8_best.pt --export onnx
 """
 
@@ -41,7 +42,8 @@ def run_inference(
     config: dict,
     save: bool = False,
     show: bool = True,
-    output_dir: str = "results/inference"
+    output_dir: str = "results/inference",
+    delay: int = 1
 ):
     """Run inference on source."""
     results = model.predict(
@@ -52,7 +54,7 @@ def run_inference(
         imgsz=config['training']['imgsz'],
         device=config['training']['device'],
         save=save,
-        show=show,
+        show=False, # We handle showing manually to control delay
         project=output_dir,
         name="detect",
         stream=True,  # Generator for video/stream
@@ -60,6 +62,12 @@ def run_inference(
 
     # Process results
     for result in results:
+        if show:
+            annotated_frame = result.plot()
+            cv2.imshow("BFMC Inference", annotated_frame)
+            if cv2.waitKey(delay) & 0xFF == ord('q'):
+                break
+
         if result.boxes is not None:
             # Get detections
             boxes = result.boxes
@@ -69,6 +77,9 @@ def run_inference(
                 xyxy = box.xyxy[0].tolist()
                 class_name = result.names[cls]
                 print(f"  {class_name}: {conf:.2f} at {xyxy}")
+    
+    if show:
+        cv2.destroyAllWindows()
 
 
 def run_camera_stream(
@@ -202,6 +213,12 @@ def main():
         default="results/inference",
         help="Output directory"
     )
+    parser.add_argument(
+        "--delay",
+        type=int,
+        default=1,
+        help="Delay between frames in ms (default: 1)"
+    )
 
     args = parser.parse_args()
 
@@ -227,7 +244,8 @@ def main():
             config,
             save=args.save,
             show=not args.no_show,
-            output_dir=args.output
+            output_dir=args.output,
+            delay=args.delay
         )
     else:
         # Default: run on test set
@@ -239,7 +257,8 @@ def main():
             config,
             save=args.save,
             show=not args.no_show,
-            output_dir=args.output
+            output_dir=args.output,
+            delay=args.delay
         )
 
 

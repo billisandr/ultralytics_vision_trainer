@@ -210,6 +210,7 @@ The `inference.py` script allows you to detecting objects in various inputs and 
 1. **Run Inference**: Detect objects in images, videos, or a live camera stream.
 2. **Export Models**: Convert `.pt` models to ONNX, TensorRT, or TFLite for devices like Raspberry Pi.
 3. **Visualize**: Display results with bounding boxes or save them to disk.
+4. **Control Speed**: Adjust playback speed for video inspection (`--delay`).
 
 ### Run on Test Images
 
@@ -228,6 +229,13 @@ python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --camera
 
 ```bash
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --source video.mp4 --save
+```
+
+### Slow Down Playback
+
+```bash
+# Add a 50ms delay between frames
+python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --source video.mp4 --delay 50
 ```
 
 ---
