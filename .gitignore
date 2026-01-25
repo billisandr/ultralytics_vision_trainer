@@ -45,7 +45,7 @@ training/runs/
 training/models/pretrained/
 
 # Dataset (too large for git)
-dataset/
+dataset/*
 *.jpg
 *.jpeg
 *.png
@@ -60,7 +60,7 @@ dataset/
 !assets/**/*.jpg
 
 # TensorBoard logs
-runs/
+runs/*
 logs/
 events.out.tfevents.*
 
