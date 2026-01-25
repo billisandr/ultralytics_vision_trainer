@@ -133,22 +133,6 @@ python3 scripts/train.py --model yolov8 --size yolov8s
 python3 scripts/train.py --model yolov11 --epochs 150 --batch-size 32
 ```
 
-### Training Time (100 epochs)
-
-- **RTX 4090**: ~30-45 minutes
-- **RTX 3090**: ~45-60 minutes
-- **RTX 3060**: ~1-2 hours
-
-### Expected Performance
-
-```txt
-Model: YOLOv8n
-├─ mAP50: 0.85 (85% accuracy)
-├─ mAP50-95: 0.60
-├─ Inference: ~800 FPS (RTX 4090)
-└─ Size: 6 MB
-```
-
 ---
 
 ## Evaluation
