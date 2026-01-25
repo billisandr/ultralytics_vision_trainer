@@ -2,7 +2,7 @@
 
 A flexible training and evaluation pipeline for object detection models. Supports any model from the Ultralytics library (YOLOv8, YOLOv11, RT-DETR, YOLO-World, etc.) and works with any dataset in Ultralytics-compatible formats (YOLO, COCO, etc.).
 
-**Example Use Case**: This repository includes configuration for the BFMC (Bosch Future Mobility Challenge) dataset to demonstrate usage.
+**Example Use Case**: This repository includes configuration for a BFMC (Bosch Future Mobility Challenge) dataset to demonstrate usage.
 
 > Developed at the [SenseLAB](http://senselab.tuc.gr/) of the [Technical University of Crete](https://www.tuc.gr/el/archi)
 
