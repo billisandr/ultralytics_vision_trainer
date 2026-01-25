@@ -1,6 +1,8 @@
-# BFMC Vision Training & Evaluation
+# Object Detection Training Pipeline
 
-Bare-bones test code for a training pipeline on object detection models using a BFMC (Bosch Future Mobility Challenge) dataset which features autonomous navigation challenges in smart cities.
+A flexible training and evaluation pipeline for object detection models. Supports any model from the Ultralytics library (YOLOv8, YOLOv11, RT-DETR, YOLO-World, etc.) and works with any dataset in Ultralytics-compatible formats (YOLO, COCO, etc.).
+
+**Example Use Case**: This repository includes configuration for the BFMC (Bosch Future Mobility Challenge) dataset to demonstrate usage.
 
 > Developed at the [SenseLAB](http://senselab.tuc.gr/) of the [Technical University of Crete](https://www.tuc.gr/el/archi)
 
@@ -9,19 +11,26 @@ Bare-bones test code for a training pipeline on object detection models using a 
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 ---
 
-## About BFMC
+## Features
 
-The [Bosch Future Mobility Challenge](https://boschfuturemobility.com/) is an autonomous driving competition focused on smart city navigation. This project provides training tools for computer vision models to detect objects in the BFMC environment.
+- **Multi-Model Support**: Train any Ultralytics model (YOLOv8, YOLOv11, RT-DETR, YOLO-World, etc.)
+- **Flexible Dataset Format**: Supports any Ultralytics-compatible format (YOLO, COCO, etc.)
+- **Automated Workflows**: Auto-download pretrained weights, auto-validation, robust path resolution
+- **Comprehensive Evaluation**: Model comparison, per-class analysis, training history visualization
+- **Export Ready**: Convert models to ONNX, TensorRT, TFLite for deployment
 
 ---
 
-## Dataset Attribution
+## Example Dataset
 
-This project uses the **BFMC Dataset v13** provided by **Team DriverIES** on Roboflow:
+This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as an example:
 
 - **Source**: [BFMC Dataset on Roboflow](https://universe.roboflow.com/team-driverles/bfmc-6btkg/dataset/13)
 - **License**: CC BY 4.0
-- **Credit**: Team DriverIES
+- **Use Case**: Autonomous driving / smart city navigation
+- **Classes**: 14 object classes (cars, pedestrians, traffic signs, etc.)
+
+**You can replace this with your own dataset** by updating the paths in `training/configs/config.yaml`.
 
 ---
 
@@ -36,13 +45,13 @@ This project uses the **BFMC Dataset v13** provided by **Team DriverIES** on Rob
 
 ---
 
-## Overview
+## Quick Start
 
-Training pipeline for YOLOv8, YOLOv11, and RT-DETR models on the BFMC autonomous driving dataset.
-
-- **Dataset**: 8,509 labeled images with 14 object classes
-- **Models**: YOLOv8, YOLOv11, RT-DETR
-- **Classes**: Cars, Pedestrians, Traffic Signs (10 types), Stop Lines, Parking Spots, Road Stands
+1. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see Dataset section below)
+2. **Configure**: Edit `training/configs/config.yaml` with your dataset paths
+3. **Train**: `python3 scripts/train.py --model yolov8n --epochs 100`
+4. **Evaluate**: `python3 scripts/evaluate_checkpoint.py --model_dir results/your_model/`
+5. **Deploy**: Export to ONNX/TensorRT with `inference.py --export`
 
 ### Supported Models
 
@@ -51,6 +60,8 @@ Training pipeline for YOLOv8, YOLOv11, and RT-DETR models on the BFMC autonomous
 | **YOLOv8** | Fast, proven architecture | General purpose, embedded |
 | **YOLOv11** | Latest YOLO improvements | Best accuracy/speed trade-off |
 | **RT-DETR** | Transformer-based detector | Strong on small objects |
+| **YOLO-World** | Open-vocabulary detection | Zero-shot object detection |
+| **Others** | See [Ultralytics Models](https://docs.ultralytics.com/models/) | Various specialized tasks |
 
 ### Example Detection Results
 
@@ -98,7 +109,7 @@ The `train.py` script handles model training, auto-downloading weights, and vali
 
 **Capabilities:**
 
-1. **Train Models**: Supports YOLOv8, YOLOv11, RT-DETR (n/s/m/l/x variants).
+1. **Train Models**: Supports any Ultralytics model (YOLOv8, YOLOv11, RT-DETR, YOLO-World, etc.) in all size variants.
 2. **Auto-Validation**: Automatically runs validation on the best model after training and saves to `train_eval/`.
 3. **Auto-Download**: Fetches pretrained weights if not found locally.
 4. **Path Management**: Automatically resolves dataset paths relative to the project structure.
@@ -247,7 +258,7 @@ Training complete for YOLOv8 (yolov8n)
 
 ## Inference
 
-The `inference.py` script allows you to detecting objects in various inputs and exporting models for deployment.
+The `inference.py` script allows you to detect objects in various inputs and export models for deployment.
 
 **Capabilities:**
 
@@ -303,13 +314,43 @@ python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --export
 
 ## Dataset
 
-### BFMC Vision Dataset
+### Using Your Own Dataset
+
+This pipeline works with any dataset in Ultralytics-supported formats (YOLO, COCO, etc.).
+
+**Required Structure:**
+
+```
+your_dataset/
+├── train/           # Training images and labels
+├── valid/           # Validation images and labels  
+├── test/            # Test images and labels (optional)
+└── data.yaml        # Dataset configuration file
+```
+
+**Configuration (`data.yaml`):**
+
+```yaml
+path: /path/to/your_dataset
+train: train
+val: valid
+test: test  # optional
+
+names:
+  0: class_name_1
+  1: class_name_2
+  # ... your classes
+```
+
+Update `training/configs/config.yaml` to point to your `data.yaml` file.
+
+### Example: BFMC Dataset
+
+The repository includes the BFMC dataset as a reference:
 
 - **Total Images**: 8,509
 - **Classes**: 14
-- **Format**: YOLO (txt labels)
-- **Resolution**: 640x640
-- **Source**: Roboflow BFMC v13
+- **Format**: YOLO
 
 ### Class Distribution
 
@@ -396,7 +437,7 @@ Edit `training/configs/config.yaml` to adjust:
 The default configuration is optimized for RTX 4090:
 
 - `batch_size: 16` - Can increase to 32 for smaller models
-- `imgsz: 640` - Standard BFMC resolution
+- `imgsz: 640` - Standard YOLO resolution
 - `amp: true` - Mixed precision for faster training
 - `cache: true` - Cache images in RAM
 
@@ -480,7 +521,7 @@ The default configuration is optimized for RTX 4090:
 2. Use FP16 precision
 3. nano/small variants recommended
 
-### For Competition
+### For Real-Time Applications
 
 1. Test inference speed on target hardware
 2. Ensure >30 FPS for real-time operation

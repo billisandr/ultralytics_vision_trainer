@@ -1,4 +1,5 @@
-# BFMC Vision Training Configuration
+# Training Configuration
+# Example: BFMC Dataset (replace with your own dataset paths)
 
 # Dataset paths
 dataset:

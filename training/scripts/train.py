@@ -1,6 +1,6 @@
 """
-BFMC Vision Model Training Script
-Train YOLOv8, YOLOv11, or RT-DETR models on BFMC dataset.
+Model Training Script
+Train YOLOv8, YOLOv11, or RT-DETR models on custom datasets.
 
 Capabilities:
 1. Train Models: Supports YOLOv8, YOLOv11, RT-DETR (n/s/m/l/x variants)

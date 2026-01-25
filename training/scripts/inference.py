@@ -1,5 +1,5 @@
 """
-BFMC Vision Inference Script
+Inference Script
 Run inference on images, videos, or camera streams.
 
 Capabilities:

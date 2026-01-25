@@ -1,5 +1,5 @@
 """
-BFMC Vision Model Evaluation and Comparison Script
+Model Evaluation and Comparison Script
 Evaluate trained models and generate comparison reports.
 
 Capabilities:
