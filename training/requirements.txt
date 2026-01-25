@@ -2,7 +2,7 @@
 # Tested with Python 3.10+ and CUDA 12.x
 
 # Core ML framework
-ultralytics>=8.3.0
+ultralytics>=8.4.7
 torch>=2.0.0
 torchvision>=0.15.0
 

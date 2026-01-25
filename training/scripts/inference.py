@@ -1,7 +1,17 @@
-#!/usr/bin/env python3
 """
 BFMC Vision Inference Script
 Run inference on images, videos, or camera streams.
+
+Capabilities:
+1. Run Inference: Detect objects in images, videos, or a live camera stream
+2. Export Models: Convert .pt models to ONNX, TensorRT, or TFLite
+3. Visualize: Display results with bounding boxes or save them to disk
+
+Usage Examples:
+    python3 scripts/inference.py --weights results/yolov8_best.pt
+    python3 scripts/inference.py --weights results/yolov8_best.pt --camera 0
+    python3 scripts/inference.py --weights results/yolov8_best.pt --source video.mp4 --save
+    python3 scripts/inference.py --weights results/yolov8_best.pt --export onnx
 """
 
 import argparse

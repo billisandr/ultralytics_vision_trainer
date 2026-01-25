@@ -145,6 +145,18 @@ Model: YOLOv8n
 
 ## Evaluation
 
+### Validation vs. Test Metrics
+
+It is important to distinguish between the metrics generated during training and those from the evaluation script:
+
+- **Validation Set (`val`)**: Used by `train.py` during training.
+  - The graphs saved in your training results folder (e.g., `results.png`, `confusion_matrix.png`, `BoxPR_curve.png`) reflect performance on the **Validation Set**.
+  - These metrics are used to track progress and select the best model checkpoint.
+
+- **Test Set (`test`)**: Used by `evaluate_checkpoint.py` (and `evaluate.py`).
+  - The `evaluate_checkpoint.py` script explicitly runs evaluation on the **Test Set** (unseen data).
+  - The outputs in the `post_eval/test` folder reflect the model's performance on this held-out dataset, providing the most accurate estimate of real-world performance.
+
 ### Compare Models
 
 ```bash
@@ -190,6 +202,14 @@ Training complete for YOLOv8 (yolov8n)
 ---
 
 ## Inference
+
+The `inference.py` script allows you to detecting objects in various inputs and exporting models for deployment.
+
+**Capabilities:**
+
+1. **Run Inference**: Detect objects in images, videos, or a live camera stream.
+2. **Export Models**: Convert `.pt` models to ONNX, TensorRT, or TFLite for devices like Raspberry Pi.
+3. **Visualize**: Display results with bounding boxes or save them to disk.
 
 ### Run on Test Images
 

@@ -3,10 +3,10 @@
 
 # Dataset paths
 dataset:
-  data_yaml: "../dataset/data.yaml"
-  train: "../dataset/train"
-  val: "../dataset/valid"
-  test: "../dataset/test"
+  data_yaml: "../dataset/dataset2_total2026/data.yaml"
+  train: "../dataset/dataset2_total2026/train"
+  val: "../dataset/dataset2_total2026/valid"
+  test: "../dataset/dataset2_total2026/test"
 
 # Training parameters (optimized for RTX 4090 24GB)
 training:
@@ -14,7 +14,7 @@ training:
   batch_size: 16
   imgsz: 640
   patience: 20
-  workers: 8
+  workers: 16
   device: 0
   amp: true  # Automatic mixed precision
   cache: true  # Cache images in RAM for faster training

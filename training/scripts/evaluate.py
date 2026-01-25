@@ -12,6 +12,7 @@ import sys
 import time
 import logging
 from pathlib import Path
+from datetime import datetime
 from typing import Dict, List
 import pandas as pd
 from ultralytics import YOLO, RTDETR
@@ -26,6 +27,24 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+
+def resolve_dataset_path(data_path_str: str, script_dir: Path) -> str:
+    """
+    Resolve the dataset path relative to the training/ directory
+    to ensure robust path handling.
+    """
+    if not data_path_str:
+        return None
+        
+    # training/ directory is two levels up from this script (training/scripts/script.py)
+    training_root = script_dir.parent
+    
+    path_obj = Path(data_path_str)
+    if path_obj.is_absolute():
+        return str(path_obj)
+    
+    # Resolve relative to training root
+    return str((training_root / path_obj).resolve())
 
 # Suppress ultralytics verbose output
 os.environ['YOLO_VERBOSE'] = 'False'
@@ -131,10 +150,28 @@ def evaluate_model(weights_path: str, data_yaml: str, config: dict, model_type: 
     else:
         model = YOLO(weights_path)
 
+    # Resolve dataset path: Prefer args.yaml from model dir if available
+    eval_data_yaml = data_yaml
+    model_dir = Path(weights_path).parent.parent # Assuming weights/best.pt structure
+    args_yaml_path = model_dir / "args.yaml"
+    
+    if args_yaml_path.exists():
+        try:
+            with open(args_yaml_path, 'r') as f:
+                model_config = yaml.safe_load(f)
+                if model_config and 'data' in model_config:
+                    script_dir = Path(__file__).parent
+                    resolved_data = resolve_dataset_path(model_config['data'], script_dir)
+                    if resolved_data and os.path.exists(resolved_data):
+                        eval_data_yaml = resolved_data
+                        print(f"  Using dataset from args.yaml: {eval_data_yaml}")
+        except Exception as e:
+            print(f"  Warning: Failed to read args.yaml: {e}")
+
     # Run validation
     start_time = time.time()
     results = model.val(
-        data=data_yaml,
+        data=eval_data_yaml,
         batch=config['training']['batch_size'],
         imgsz=config['training']['imgsz'],
         conf=config['inference']['conf_threshold'],
@@ -431,11 +468,19 @@ def main():
         default=None,
         help="Directory containing training results"
     )
+    # Determine default results directory (project root / results)
+    project_root = Path(__file__).resolve().parent.parent.parent
+    default_base_results = project_root / "results"
+    
+    # Generate timestamped folder name
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    default_output = default_base_results / f"comp_eval_{timestamp}"
+
     parser.add_argument(
         "--output",
         type=str,
-        default="results",
-        help="Output directory for comparison report"
+        default=None,
+        help="Output directory for comparison report (default: results/comp_eval_<datetime>)"
     )
     parser.add_argument(
         "--include-pretrained",
@@ -494,8 +539,11 @@ def main():
 
     # Generate comparison
     if metrics_list:
-        os.makedirs(args.output, exist_ok=True)
-        df = compare_models(metrics_list, args.output)
+        # Determine final output path
+        output_path = Path(args.output) if args.output else default_output
+        
+        os.makedirs(output_path, exist_ok=True)
+        df = compare_models(metrics_list, output_path)
 
         # Print summary with ratings
         print("\n" + "="*80)

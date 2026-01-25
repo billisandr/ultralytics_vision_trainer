@@ -37,16 +37,12 @@ venv.bak/
 *.tflite
 *.torchscript
 *.pb
+*.pt
 
 # Training outputs
-training/results/*/
+results/*
 training/runs/
-training/models/exported/
-!training/results/pretrained_models/
-
-# Keep pretrained models but ignore downloaded weights in other locations
-*.pt
-!training/models/pretrained/*.pt
+training/models/pretrained/
 
 # Dataset (too large for git)
 dataset/

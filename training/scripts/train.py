@@ -30,16 +30,45 @@ def load_config(config_path: str) -> dict:
         return yaml.safe_load(f)
 
 
-def train_yolov8(config: dict, model_size: str = None) -> str:
-    """Train YOLOv8 model."""
-    model_name = model_size or config['models']['yolov8']['name']
+def train_generic(config: dict, model_name: str) -> str:
+    """Train a generic model supported by Ultralytics."""
     print(f"\n{'='*60}")
-    print(f"Training YOLOv8 ({model_name})")
+    print(f"Training Model ({model_name})")
     print(f"{'='*60}\n")
 
-    # Load pretrained model from models/pretrained/ directory
-    pretrained_path = Path(__file__).parent.parent / "models" / "pretrained" / f"{model_name}.pt"
-    model = YOLO(str(pretrained_path))
+    # Determine which class to use (RTDETR has its own class, everything else uses YOLO)
+    if "rtdetr" in model_name.lower():
+        ModelClass = RTDETR
+    else:
+        ModelClass = YOLO
+
+    # Load model (locally or from Ultralytics hub)
+    pretrained_dir = Path(__file__).parent.parent / "models" / "pretrained"
+    os.makedirs(pretrained_dir, exist_ok=True)
+    
+    pretrained_path = pretrained_dir / f"{model_name}.pt"
+    
+    if pretrained_path.exists():
+        print(f"Loading local model from {pretrained_path}")
+        model = ModelClass(str(pretrained_path))
+    else:
+        print(f"Model not found at {pretrained_path}, downloading...")
+        # Ultralytics downloads to current working directory by default
+        model = ModelClass(model_name)
+        
+        # Move downloaded file to pretrained directory
+        cwd_download = Path.cwd() / f"{model_name}.pt"
+        if cwd_download.exists():
+            print(f"Moving downloaded model to {pretrained_path}")
+            try:
+                os.rename(cwd_download, pretrained_path)
+                # Reload from new location to ensure path consistency
+                model = ModelClass(str(pretrained_path))
+            except Exception as e:
+                print(f"Warning: Failed to move model file: {e}")
+        else:
+            # Maybe it wasn't downloaded to CWD or logic differs
+            print(f"Note: Could not locate downloaded file at {cwd_download}")
 
     # Train
     results = model.train(
@@ -53,9 +82,9 @@ def train_yolov8(config: dict, model_size: str = None) -> str:
         amp=config['training']['amp'],
         cache=config['training']['cache'],
         project=config['output']['results_dir'],
-        name=f"yolov8_{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+        name=f"{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
         verbose=False,  # Suppress verbose progress bars
-        # Augmentation
+        # Basic augmentation (supported by most YOLO/RTDETR models)
         hsv_h=config['augmentation']['hsv_h'],
         hsv_s=config['augmentation']['hsv_s'],
         hsv_v=config['augmentation']['hsv_v'],
@@ -67,77 +96,23 @@ def train_yolov8(config: dict, model_size: str = None) -> str:
         mosaic=config['augmentation']['mosaic'],
         mixup=config['augmentation']['mixup'],
     )
-
-    return str(results.save_dir)
-
-
-def train_yolov11(config: dict, model_size: str = None) -> str:
-    """Train YOLOv11 model."""
-    model_name = model_size or config['models']['yolov11']['name']
-    print(f"\n{'='*60}")
-    print(f"Training YOLOv11 ({model_name})")
-    print(f"{'='*60}\n")
-
-    # Load pretrained model from models/pretrained/ directory
-    pretrained_path = Path(__file__).parent.parent / "models" / "pretrained" / f"{model_name}.pt"
-    model = YOLO(str(pretrained_path))
-
-    # Train
-    results = model.train(
-        data=config['dataset']['data_yaml'],
-        epochs=config['training']['epochs'],
-        batch=config['training']['batch_size'],
-        imgsz=config['training']['imgsz'],
-        patience=config['training']['patience'],
-        workers=config['training']['workers'],
-        device=config['training']['device'],
-        amp=config['training']['amp'],
-        cache=config['training']['cache'],
-        project=config['output']['results_dir'],
-        name=f"yolov11_{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        verbose=False,  # Suppress verbose progress bars
-        # Augmentation
-        hsv_h=config['augmentation']['hsv_h'],
-        hsv_s=config['augmentation']['hsv_s'],
-        hsv_v=config['augmentation']['hsv_v'],
-        degrees=config['augmentation']['degrees'],
-        translate=config['augmentation']['translate'],
-        scale=config['augmentation']['scale'],
-        flipud=config['augmentation']['flipud'],
-        fliplr=config['augmentation']['fliplr'],
-        mosaic=config['augmentation']['mosaic'],
-        mixup=config['augmentation']['mixup'],
-    )
-
-    return str(results.save_dir)
-
-
-def train_rtdetr(config: dict, model_size: str = None) -> str:
-    """Train RT-DETR model."""
-    model_name = model_size or config['models']['rtdetr']['name']
-    print(f"\n{'='*60}")
-    print(f"Training RT-DETR ({model_name})")
-    print(f"{'='*60}\n")
-
-    # Load pretrained model from models/pretrained/ directory
-    pretrained_path = Path(__file__).parent.parent / "models" / "pretrained" / f"{model_name}.pt"
-    model = RTDETR(str(pretrained_path))
-
-    # Train
-    results = model.train(
-        data=config['dataset']['data_yaml'],
-        epochs=config['training']['epochs'],
-        batch=config['training']['batch_size'],
-        imgsz=config['training']['imgsz'],
-        patience=config['training']['patience'],
-        workers=config['training']['workers'],
-        device=config['training']['device'],
-        amp=config['training']['amp'],
-        cache=config['training']['cache'],
-        project=config['output']['results_dir'],
-        name=f"rtdetr_{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        verbose=False,  # Suppress verbose progress bars
-    )
+    
+    # Run explicit validation on best model and save to separate folder
+    try:
+        save_dir = Path(results.save_dir)
+        best_pt = save_dir / "weights" / "best.pt"
+        
+        print(f"\nRunning final validation for {model_name}...")
+        if best_pt.exists():
+            val_model = ModelClass(str(best_pt))
+            val_model.val(
+                split='val',
+                project=str(save_dir),
+                name='train_eval',
+                plots=True
+            )
+    except Exception as e:
+        print(f"Warning: Failed to run explicit validation: {e}")
 
     return str(results.save_dir)
 
@@ -147,14 +122,19 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        choices=["yolov8", "yolov11", "rtdetr", "all"],
         default="all",
-        help="Model to train (default: all)"
+        help="Model to train (e.g., yolov8, yolo11, rtdetr, or specific like yolov10n) (default: all)"
+    )
+    parser.add_argument(
+        "--data",
+        type=str,
+        default=None,
+        help="Path to dataset YAML file (overrides config)"
     )
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/config.yaml",
+        default=str(Path(__file__).parent.parent / "configs" / "config.yaml"),
         help="Path to config file"
     )
     parser.add_argument(
@@ -187,7 +167,23 @@ def main():
     if args.batch_size:
         config['training']['batch_size'] = args.batch_size
 
-    # Create output directories
+    # Create output directories (relative to project root)
+    script_dir = Path(__file__).parent.parent
+    project_root = Path(__file__).resolve().parent.parent.parent
+    results_dir = project_root / config['output']['results_dir']
+    models_dir = project_root / config['output']['models_dir']
+    
+    # Update config with absolute paths
+    config['output']['results_dir'] = str(results_dir)
+    config['output']['models_dir'] = str(models_dir)
+
+    # Resolve dataset path relative to training directory (if not overridden by absolute path or args)
+    if not args.data:
+        # If it's a relative path in config, make it relative to training/ directory
+        data_yaml_path = Path(config['dataset']['data_yaml'])
+        if not data_yaml_path.is_absolute():
+            config['dataset']['data_yaml'] = str((script_dir / data_yaml_path).resolve())
+
     os.makedirs(config['output']['results_dir'], exist_ok=True)
     os.makedirs(config['output']['models_dir'], exist_ok=True)
 
@@ -195,14 +191,19 @@ def main():
     results_paths = {}
 
     # Train selected models
-    if args.model in ["yolov8", "all"]:
-        results_paths['yolov8'] = train_yolov8(config, args.size if args.model == "yolov8" else None)
-
-    if args.model in ["yolov11", "all"]:
-        results_paths['yolov11'] = train_yolov11(config, args.size if args.model == "yolov11" else None)
-
-    if args.model in ["rtdetr", "all"]:
-        results_paths['rtdetr'] = train_rtdetr(config, args.size if args.model == "rtdetr" else None)
+    if args.model == "all":
+        results_paths['yolov8'] = train_generic(config, config['models']['yolov8']['name'])
+        results_paths['yolov11'] = train_generic(config, config['models']['yolov11']['name'])
+        results_paths['rtdetr'] = train_generic(config, config['models']['rtdetr']['name'])
+    elif args.model == "yolov8":
+        results_paths['yolov8'] = train_generic(config, args.size or config['models']['yolov8']['name'])
+    elif args.model == "yolov11":
+        results_paths['yolov11'] = train_generic(config, args.size or config['models']['yolov11']['name'])
+    elif args.model == "rtdetr":
+        results_paths['rtdetr'] = train_generic(config, args.size or config['models']['rtdetr']['name'])
+    else:
+        # Train specific model (can be any name supported by Ultralytics)
+        results_paths[args.model] = train_generic(config, args.model)
 
     # Summary
     print(f"\n{'='*60}")
