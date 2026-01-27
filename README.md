@@ -49,7 +49,7 @@ This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as 
 
 1. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see Dataset section below)
 2. **Configure**: Edit `training/configs/config.yaml` with your dataset paths
-3. **Train**: `python3 scripts/train.py --model yolov8n --epochs 100`
+3. **Train**: `python3 scripts/train.py --model yolo8n --epochs 100`
 4. **Evaluate**: `python3 scripts/evaluate_checkpoint.py --model_dir results/your_model/`
 5. **Deploy**: Export to ONNX/TensorRT with `inference.py --export`
 
@@ -118,19 +118,16 @@ The `train.py` script handles model training, auto-downloading weights, and vali
 
 ```bash
 # Train individual models
-python3 scripts/train.py --model yolov8
-python3 scripts/train.py --model yolov11
+python3 scripts/train.py --model yolo8s
+python3 scripts/train.py --model yolo11n
 python3 scripts/train.py --model rtdetr
 ```
 
 ### Custom Training
 
 ```bash
-# Different model size
-python3 scripts/train.py --model yolov8 --size yolov8s
-
 # Adjust epochs and batch size
-python3 scripts/train.py --model yolov11 --epochs 150 --batch-size 32
+python3 scripts/train.py --model yolo11s --epochs 150 --batch-size 32
 ```
 
 ---

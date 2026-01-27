@@ -14,7 +14,7 @@ training:
   batch_size: 16      # Images per batch (Increase if VRAM allows, decrease if OOM)
   imgsz: 640          # Input image resolution (640x640 is standard YOLO)
   patience: 20        # Stop early if no improvement for N epochs
-  workers: 20         # Dataloader threads (Set close to CPU core count)
+  workers: 22         # Dataloader threads (Set close to CPU core count)
   device: 0           # GPU ID (0 for first GPU, 'cpu' for CPU)
   amp: true           # Automatic Mixed Precision (Faster, less VRAM)
   cache: true         # Cache images in RAM (Faster, uses more System RAM)
