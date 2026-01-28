@@ -193,8 +193,11 @@ python3 scripts/evaluate.py
 # Include pretrained baselines to see improvement
 python3 scripts/evaluate.py --include-pretrained
 
-# Evaluate specific weights
+# Evaluate specific weights (each on the dataset specified in its own data.yaml)
 python3 scripts/evaluate.py --weights results/yolov8_*/weights/best.pt results/yolov11_*/weights/best.pt
+
+# Evaluate all models on the same dataset (bypass auto-detection)
+python3 scripts/evaluate.py --weights results/yolov8_*/weights/best.pt results/yolov11_*/weights/best.pt --data ../dataset/custom_dataset/data.yaml
 ```
 
 ### Generated Outputs

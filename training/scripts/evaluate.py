@@ -12,6 +12,7 @@ Usage Examples:
     python3 scripts/evaluate.py --weights results/yolov8_*/weights/best.pt results/yolo11_*/weights/best.pt
     python3 scripts/evaluate.py --include-pretrained  # Compare all results/ models + baselines
     python3 scripts/evaluate.py --output results/my_comparison_v1
+    python3 scripts/evaluate.py --weights results/yolov8_*/weights/best.pt results/yolo11_*/weights/best.pt --data ../dataset/custom_data.yaml  # Override dataset for all models
 """
 
 import argparse
@@ -150,7 +151,7 @@ def find_pretrained_models(results_dir: str) -> List[Dict[str, str]]:
     return models
 
 
-def evaluate_model(weights_path: str, data_yaml: str, config: dict, model_type: str = 'trained') -> Dict:
+def evaluate_model(weights_path: str, data_yaml: str, config: dict, model_type: str = 'trained', custom_data_yaml: str = None) -> Dict:
     """Evaluate a single model and return metrics."""
     print(f"\nEvaluating: {weights_path}")
 
@@ -160,23 +161,33 @@ def evaluate_model(weights_path: str, data_yaml: str, config: dict, model_type: 
     else:
         model = YOLO(weights_path)
 
-    # Resolve dataset path: Prefer args.yaml from model dir if available
-    eval_data_yaml = data_yaml
-    model_dir = Path(weights_path).parent.parent # Assuming weights/best.pt structure
-    args_yaml_path = model_dir / "args.yaml"
+    # Resolve dataset path logic:
+    # 1. Official --data override (passed via custom_data_yaml)
+    # 2. Local args.yaml (auto-discovered)
+    # 3. Default config.yaml
     
-    if args_yaml_path.exists():
-        try:
-            with open(args_yaml_path, 'r') as f:
-                model_config = yaml.safe_load(f)
-                if model_config and 'data' in model_config:
-                    script_dir = Path(__file__).parent
-                    resolved_data = resolve_dataset_path(model_config['data'], script_dir)
-                    if resolved_data and os.path.exists(resolved_data):
-                        eval_data_yaml = resolved_data
-                        print(f"  Using dataset from args.yaml: {eval_data_yaml}")
-        except Exception as e:
-            print(f"  Warning: Failed to read args.yaml: {e}")
+    eval_data_yaml = data_yaml
+    
+    if custom_data_yaml:
+        eval_data_yaml = custom_data_yaml
+        print(f"  Using override dataset: {eval_data_yaml}")
+    else:
+        # Resolve dataset path: Prefer args.yaml from model dir if available
+        model_dir = Path(weights_path).parent.parent # Assuming weights/best.pt structure
+        args_yaml_path = model_dir / "args.yaml"
+        
+        if args_yaml_path.exists():
+            try:
+                with open(args_yaml_path, 'r') as f:
+                    model_config = yaml.safe_load(f)
+                    if model_config and 'data' in model_config:
+                        script_dir = Path(__file__).parent
+                        resolved_data = resolve_dataset_path(model_config['data'], script_dir)
+                        if resolved_data and os.path.exists(resolved_data):
+                            eval_data_yaml = resolved_data
+                            print(f"  Using dataset from args.yaml: {eval_data_yaml}")
+            except Exception as e:
+                print(f"  Warning: Failed to read args.yaml: {e}")
 
     # Run validation
     start_time = time.time()
@@ -473,6 +484,12 @@ def main():
         help="Specific weight files to evaluate (optional)"
     )
     parser.add_argument(
+        "--data",
+        type=str,
+        default=None,
+        help="Override dataset YAML file for all models (optional)"
+    )
+    parser.add_argument(
         "--results-dir",
         type=str,
         default=None,
@@ -541,7 +558,8 @@ def main():
                 model_info['path'],
                 config['dataset']['data_yaml'],
                 config,
-                model_type=model_info.get('type', 'trained')
+                model_type=model_info.get('type', 'trained'),
+                custom_data_yaml=args.data
             )
             metrics_list.append(metrics)
         except Exception as e:
