@@ -1,6 +1,6 @@
 # Object Detection Training Pipeline
 
-A flexible training and evaluation pipeline for object detection models. Supports any model from the Ultralytics library (YOLOv8, YOLOv11, RT-DETR, YOLO-World, etc.) and works with any dataset in Ultralytics-compatible formats (YOLO, COCO, etc.).
+A flexible training and evaluation pipeline for object detection models. Supports any model from the Ultralytics [models](https://docs.ultralytics.com/models/).
 
 **Example Use Case**: This repository includes configuration for a BFMC (Bosch Future Mobility Challenge) dataset to demonstrate usage.
 
@@ -13,9 +13,7 @@ A flexible training and evaluation pipeline for object detection models. Support
 
 ## Features
 
-- **Multi-Model Support**: Train any Ultralytics model (YOLOv8, YOLOv11, RT-DETR, YOLO-World, etc.)
-- **Flexible Dataset Format**: Supports any Ultralytics-compatible format (YOLO, COCO, etc.)
-- **Automated Workflows**: Auto-download pretrained weights, auto-validation, robust path resolution
+- **Multi-Model Support**: Train any Ultralytics model (YOLOvX,RT-DETR, YOLOE, etc.)
 - **Comprehensive Evaluation**: Model comparison, per-class analysis, training history visualization
 - **Export Ready**: Convert models to ONNX, TensorRT, TFLite for deployment
 
@@ -30,38 +28,22 @@ This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as 
 - **Use Case**: Autonomous driving / smart city navigation
 - **Classes**: 14 object classes (cars, pedestrians, traffic signs, etc.)
 
-**You can replace this with your own dataset** by updating the paths in `training/configs/config.yaml`.
-
----
-
-## AI-Assisted Development
-
-**LLM Usage**: This project was developed with assistance from Claude (Anthropic). While efforts have been made to ensure code quality and correctness:
-
-- **Use with Caution**: Review and test all code thoroughly before deployment
-- **No Warranty**: Code is provided "as-is" without guarantees
-- **Verify Results**: Always validate model performance and system behavior
-- **Safety Critical**: Extra caution required for autonomous driving applications
+**You can replace this with your own dataset** by downloading your dataset and updating the filepaths in `training/configs/config.yaml`.
 
 ---
 
 ## Quick Start
 
 1. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see Dataset section below)
-2. **Configure**: Edit `training/configs/config.yaml` with your dataset paths
-3. **Train**: `python3 scripts/train.py --model yolo8n --epochs 100`
-4. **Evaluate**: `python3 scripts/evaluate_checkpoint.py --model_dir results/your_model/`
-5. **Deploy**: Export to ONNX/TensorRT with `inference.py --export`
+2. **Configure**: Edit `training/configs/config.yaml` with the correct dataset filepaths
+3. **Train**: `cd training && python3 scripts/train.py --model yolo8n --batch-size 16 --workers 16 --epochs 100`
+4. **Evaluate**: `cd training && python3 scripts/evaluate_checkpoint.py --model_dir results/your_model/`
+5. **Deploy**: Deploy on a source with `cd training && python3 scripts/inference.py --weights results/your_model/best.pt --export onnx`
+6. **Export**: Export to ONNX/TensorRT with `cd training && python3 scripts/inference.py --weights results/your_model/best.pt --source video.mp4 --delay 50`
 
 ### Supported Models
 
-| Model | Description | Use Case |
-|-------|-------------|----------|
-| **YOLOv8** | Fast, proven architecture | General purpose, embedded |
-| **YOLOv11** | Latest YOLO improvements | Best accuracy/speed trade-off |
-| **RT-DETR** | Transformer-based detector | Strong on small objects |
-| **YOLO-World** | Open-vocabulary detection | Zero-shot object detection |
-| **Others** | See [Ultralytics Models](https://docs.ultralytics.com/models/) | Various specialized tasks |
+See [Ultralytics Models](https://docs.ultralytics.com/models/)
 
 ### Example Detection Results
 
@@ -84,7 +66,7 @@ bfmc_vision_simple/
 │   │   └── config.yaml          # Training configuration
 │   ├── utils/                   # Helper utilities
 │   └── models/
-│       └── pretrained/          # Downloaded weights (yolov8n.pt, etc.)
+│       └── pretrained/          # Downloaded initial weights from ultralytics
 │
 ├── results/                     # Training & Evaluation outputs
 │   ├── yolov8n_2024.../         # Individual training run
@@ -117,18 +99,27 @@ The `train.py` script handles model training, auto-downloading weights, and vali
 ### Train Specific Models
 
 ```bash
-# Train individual models
-python3 scripts/train.py --model yolo8s
-python3 scripts/train.py --model yolo11n
-python3 scripts/train.py --model rtdetr
+cd training
+
+# Train individual models (specify exact model name)
+python3 scripts/train.py --model yolov8n --batch-size 16 --workers 16 --epochs 100
+python3 scripts/train.py --model yolo11s --batch-size 16 --workers 16 --epochs 100
+python3 scripts/train.py --model rtdetr-l --batch-size 16 --workers 16 --epochs 100
 ```
 
-### Custom Training
+### Train All Models
+
+Train multiple models in sequence using the models defined in `training/configs/config.yaml`:
 
 ```bash
-# Adjust epochs and batch size
-python3 scripts/train.py --model yolo11s --epochs 150 --batch-size 32
+cd training
+
+# Train all models specified in config.yaml under 'models' section
+# This will train: yolov8n, yolo11n, and rtdetr-l (or whatever is configured)
+python3 scripts/train.py --model all --batch-size 16 --workers 16 --epochs 100
 ```
+
+> **Note**: The `--model all` option trains the models specified in the `models` section of `config.yaml`. Edit that section to change which models are trained when using `--model all`.
 
 ---
 
@@ -157,8 +148,10 @@ The `evaluate_checkpoint.py` script is designed for verifying a specific trainin
 3. **Auto-Config**: Automatically finds dataset and parameters from `args.yaml` inside the model folder.
 
 ```bash
+cd training
+
 # Verify a specific training run
-python3 scripts/evaluate_checkpoint.py --model_dir results/yolov8s_20260125_123522
+python3 scripts/evaluate_checkpoint.py --model_dir results/yolov8_*
 ```
 
 ### Compare Models
@@ -248,29 +241,24 @@ The `inference.py` script allows you to detect objects in various inputs and exp
 3. **Visualize**: Display results with bounding boxes or save them to disk.
 4. **Control Speed**: Adjust playback speed for video inspection (`--delay`).
 
-### Run on Test Images
+### Run on Images/Videossources
 
 ```bash
 cd training
+
+# Default Uses the test set from config file: config['dataset']['test'] + /images
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt
-```
 
-### Run on Camera
+# Use a specific source
+python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --source /path/to/images/
 
-```bash
+# Run on live camera
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --camera 0
-```
 
-### Run on Video
-
-```bash
+# Run on video
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --source video.mp4 --save
-```
 
-### Slow Down Playback
-
-```bash
-# Add a 50ms delay between frames
+# Run on video with delay (slow down playback)
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --source video.mp4 --delay 50
 ```
 
@@ -282,13 +270,15 @@ python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --source
 
 ```bash
 cd training
+
+# Export to ONNX
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --export onnx
-```
 
-### Export to TensorRT (Jetson)
-
-```bash
+# Export to TensorRT
 python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --export engine
+
+# Export to TFLite
+python3 scripts/inference.py --weights results/yolov8_*/weights/best.pt --export tflite
 ```
 
 ---
@@ -317,10 +307,8 @@ train: train
 val: valid
 test: test  # optional
 
-names:
-  0: class_name_1
-  1: class_name_2
-  # ... your classes
+# Class names are defined in your dataset's data.yaml
+# They are automatically embedded in the trained model weights
 ```
 
 Update `training/configs/config.yaml` to point to your `data.yaml` file.
@@ -474,42 +462,6 @@ The default configuration is optimized for RTX 4090:
 - GPU: RTX 3090/4090 (24GB VRAM)
 - Storage: 50 GB (SSD)
 
-### Deployment
-
-**Raspberry Pi 4/5**:
-
-- Use YOLOv8n with ONNX export
-- Expected FPS: ~15
-
-**Jetson Xavier/Orin**:
-
-- Use YOLOv8n/s with TensorRT
-- Expected FPS: ~60-120
-
----
-
-## Deployment Notes
-
-### For Raspberry Pi 4/5
-
-1. Use nano/small model variants
-2. Export to ONNX format
-3. Consider OpenVINO for acceleration
-
-### For Jetson Nano/Xavier
-
-1. Export to TensorRT engine
-2. Use FP16 precision
-3. nano/small variants recommended
-
-### For Real-Time Applications
-
-1. Test inference speed on target hardware
-2. Ensure >30 FPS for real-time operation
-3. Validate on representative test scenarios
-
----
-
 ## Troubleshooting
 
 ### CUDA Out of Memory
@@ -545,5 +497,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Roboflow** - Dataset hosting and tools
 - **BFMC Team** - Competition organization
 - **Team DriverIES** - Dataset example
+
+---
+
+## AI-Assisted Development
+
+**LLM Usage**: This project was developed with assistance from Claude (Anthropic). While efforts have been made to ensure code quality and correctness:
+
+- **Use with Caution**: Review and test all code thoroughly before deployment
+- **No Warranty**: Code is provided "as-is" without guarantees
+- **Verify Results**: Always validate model performance and system behavior
+- **Safety Critical**: Extra caution required for autonomous driving applications
 
 ---

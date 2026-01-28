@@ -20,6 +20,8 @@ training:
   cache: true         # Cache images in RAM (Faster, uses more System RAM)
 
 # Model-specific configurations
+# These models are used when running: python3 scripts/train.py --model all
+# Or when using shorthand names like: --model yolov8, --model yolov11, --model rtdetr
 models:
   yolov8:
     name: "yolov8n"   # Base model (n=nano, s=small, m=medium, l=large, x=extra large)

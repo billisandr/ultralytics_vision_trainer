@@ -10,7 +10,7 @@ Capabilities:
 
 Usage Examples:
     python3 scripts/train.py --model yolov8n --epochs 100
-    python3 scripts/train.py --model yolo11x --batch-size 16
+    python3 scripts/train.py --model yolo11x --batch-size 16 --workers 8
     python3 scripts/train.py --model rtdetr-l --data ../dataset/custom.yaml
 """
 
@@ -165,6 +165,12 @@ def main():
         default=None,
         help="Override batch size"
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="Override number of dataloader workers"
+    )
 
     args = parser.parse_args()
 
@@ -176,6 +182,8 @@ def main():
         config['training']['epochs'] = args.epochs
     if args.batch_size:
         config['training']['batch_size'] = args.batch_size
+    if args.workers:
+        config['training']['workers'] = args.workers
 
     # Create output directories (relative to project root)
     script_dir = Path(__file__).parent.parent
