@@ -34,6 +34,13 @@ This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as 
 
 ## Quick Start
 
+### Prerequisites
+
+1. **Python 3.10+**: Ensure you have Python 3.10 or higher installed.
+2. **Requirements**: Install requirements using `pip install -r requirements.txt`.
+
+### Training
+
 1. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see Dataset section below)
 2. **Configure**: Edit `training/configs/config.yaml` with the correct dataset filepaths
 3. **Train**: `cd training && python3 scripts/train.py --model yolov8n --batch-size 16 --workers 16 --epochs 100`
