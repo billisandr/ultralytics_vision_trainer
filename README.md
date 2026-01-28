@@ -37,7 +37,7 @@ This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as 
 ### Prerequisites
 
 1. **Python 3.10+**: Ensure you have Python 3.10 or higher installed.
-2. **Requirements**: Install requirements using `pip install -r requirements.txt`.
+2. **Requirements**: Install requirements using `cd training && pip install -r requirements.txt`.
 
 ### Training
 
