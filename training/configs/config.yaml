@@ -24,7 +24,7 @@ training:
 # Or when using shorthand names like: --model yolov8, --model yolov11, --model rtdetr
 models:
   yolov8:
-    name: "yolov8n"   # Base model (n=nano, s=small, m=medium, l=large, x=extra large)
+    name: "yolo8n"   # Base model (n=nano, s=small, m=medium, l=large, x=extra large)
     pretrained: true  # Start with COCO weights (Recommended)
 
   yolov11:
