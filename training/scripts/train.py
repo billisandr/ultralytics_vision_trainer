@@ -19,6 +19,7 @@ import yaml
 import os
 import sys
 import logging
+import time
 from pathlib import Path
 from datetime import datetime
 from ultralytics import YOLO, RTDETR
@@ -40,11 +41,31 @@ def load_config(config_path: str) -> dict:
         return yaml.safe_load(f)
 
 
-def train_generic(config: dict, model_name: str) -> str:
+def get_dataset_counts(config: dict) -> dict:
+    """Count image files in each dataset split."""
+    counts = {}
+    for split in ['train', 'val', 'test']:
+        path_str = config['dataset'].get(split)
+        if path_str:
+            img_dir = Path(path_str) / "images"
+            if img_dir.exists():
+                # Count common image files
+                count = len([f for f in img_dir.iterdir() if f.is_file() and f.suffix.lower() in ['.jpg', '.jpeg', '.png', '.webp']])
+                counts[split] = count
+            else:
+                counts[split] = 0
+        else:
+            counts[split] = 0
+    return counts
+
+
+def train_generic(config: dict, model_name: str, dataset_counts: dict) -> tuple[str, float, str]:
     """Train a generic model supported by Ultralytics."""
     print(f"\n{'='*60}")
     print(f"Training Model ({model_name})")
     print(f"{'='*60}\n")
+    
+    start_time = time.time()
 
     # Determine which class to use (RTDETR has its own class, everything else uses YOLO)
     if "rtdetr" in model_name.lower():
@@ -124,7 +145,44 @@ def train_generic(config: dict, model_name: str) -> str:
     except Exception as e:
         print(f"Warning: Failed to run explicit validation: {e}")
 
-    return str(results.save_dir)
+    # Calculate duration
+    end_time = time.time()
+    duration = end_time - start_time
+    
+    # Format summary message
+    hours = int(duration // 3600)
+    minutes = int((duration % 3600) // 60)
+    seconds = int(duration % 60)
+    
+    time_parts = []
+    if hours > 0: time_parts.append(f"{hours}hr")
+    if minutes > 0: time_parts.append(f"{minutes}min")
+    time_parts.append(f"{seconds}s")
+    time_str = " ".join(time_parts)
+    
+    summary_str = (
+        f"Model: {model_name}, "
+        f"Dataset size: {dataset_counts.get('train', 0)} images (train), "
+        f"{dataset_counts.get('val', 0)} (val), "
+        f"{dataset_counts.get('test', 0)} (test), "
+        f"Epochs: {config['training']['epochs']}, "
+        f"Batch Size: {config['training']['batch_size']}, "
+        f"Workers: {config['training']['workers']}, "
+        f"Training Time: {time_str}"
+    )
+    
+    # Save summary to file
+    try:
+        summary_file = Path(results.save_dir) / "training_summary.txt"
+        with open(summary_file, 'w') as f:
+            f.write(summary_str + "\n")
+        print(f"Summary saved to {summary_file}")
+    except Exception as e:
+        print(f"Warning: Failed to save summary file: {e}")
+
+    print(f"\nTraining for {model_name} completed in {time_str}")
+    
+    return str(results.save_dir), duration, summary_str
 
 
 def main():
@@ -205,30 +263,27 @@ def main():
     os.makedirs(config['output']['results_dir'], exist_ok=True)
     os.makedirs(config['output']['models_dir'], exist_ok=True)
 
+    # Get dataset counts
+    dataset_counts = get_dataset_counts(config)
+
     # Track results
-    results_paths = {}
+    results_data = {}
 
     # Train selected models
     if args.model == "all":
-        results_paths['yolov8'] = train_generic(config, config['models']['yolov8']['name'])
-        results_paths['yolov11'] = train_generic(config, config['models']['yolov11']['name'])
-        results_paths['rtdetr'] = train_generic(config, config['models']['rtdetr']['name'])
-    elif args.model == "yolov8":
-        results_paths['yolov8'] = train_generic(config, args.size or config['models']['yolov8']['name'])
-    elif args.model == "yolov11":
-        results_paths['yolov11'] = train_generic(config, args.size or config['models']['yolov11']['name'])
-    elif args.model == "rtdetr":
-        results_paths['rtdetr'] = train_generic(config, args.size or config['models']['rtdetr']['name'])
+        for model_name in config['models']['list']:
+            results_data[model_name] = train_generic(config, model_name, dataset_counts)
     else:
         # Train specific model (can be any name supported by Ultralytics)
-        results_paths[args.model] = train_generic(config, args.model)
+        results_data[args.model] = train_generic(config, args.model, dataset_counts)
 
     # Summary
     print(f"\n{'='*60}")
     print("Training Complete!")
     print(f"{'='*60}")
-    for model, path in results_paths.items():
-        print(f"{model}: {path}")
+    for model, (path, duration, summary) in results_data.items():
+        print(summary)
+        print(f"Path: {path}")
     print(f"{'='*60}\n")
 
 

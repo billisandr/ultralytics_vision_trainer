@@ -21,19 +21,9 @@ training:
 
 # Model-specific configurations
 # These models are used when running: python3 scripts/train.py --model all
-# Or when using shorthand names like: --model yolov8n, --model yolo11n, --model rtdetr-l
 models:
-  yolov8:
-    name: "yolov8n"   # Base model (n=nano, s=small, m=medium, l=large, x=extra large)
-    pretrained: true  # Start with COCO weights (Recommended)
-
-  yolov11:
-    name: "yolo11n"   # Newest architecture (Better accuracy/speed than v8)
-    pretrained: true
-
-  rtdetr:
-    name: "rtdetr-l"  # Transformer-based model (Better for small objects, slower)
-    pretrained: true
+  list: ["yolov8n", "yolo11n", "rtdetr-l"]
+  pretrained: true   # Start with pretrained weights (Recommended)
 
 # Optimization (Hyperparameters)
 optimizer:
@@ -67,4 +57,4 @@ inference:
 # Output paths
 output:
   results_dir: "results" # Directory for training runs and comparisons
-  models_dir: "models"   # Directory for exported models
+  models_dir: "export_models"   # Directory for inference.py to save the exported models

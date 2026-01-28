@@ -9,6 +9,7 @@ A flexible training and evaluation pipeline for object detection models. Support
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
+
 ---
 
 ## Features
@@ -39,7 +40,7 @@ This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as 
 1. **Python 3.10+**: Ensure you have Python 3.10 or higher installed.
 2. **Requirements**: Install requirements using `cd training && pip install -r requirements.txt`.
 
-### Training
+### Step-by-Step Guide
 
 1. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see Dataset section below)
 2. **Configure**: Edit `training/configs/config.yaml` with the correct dataset filepaths
@@ -78,7 +79,8 @@ bfmc_vision_simple/
 ├── results/                     # Training & Evaluation outputs
 │   ├── yolov8n_2024.../         # Individual training run
 │   │   ├── weights/             # Best/last checkpoints
-│   │   └── train_eval/          # Auto-validation results
+│   │   ├── train_eval/          # Auto-validation results
+│   │   └── training_summary.txt # Dataset size & training time summary
 │   └── comp_eval_.../           # Comparison reports
 │
 ├── dataset/                     # BFMC vision dataset
@@ -89,6 +91,16 @@ bfmc_vision_simple/
 │
 └── assets/                      # Documentation assets
 ```
+
+### Output Directories
+
+In config/config.yaml there are two output directories:
+
+- **`results_dir`**: Your **workspace** where everything is messy and detailed. Used for analyzing training progress and performance plots.
+- **`models_dir`**: Your **shelf** where you put the finished, polished models for the system to use (e.g., exported ONNX/TensorRT files).
+
+> [!NOTE]
+> Currently, the `train.py` script creates the folder as a placeholder, but it's the inference/export workflows that typically populate it with ready-to-use models!
 
 ---
 
@@ -121,12 +133,12 @@ Train multiple models in sequence using the models defined in `training/configs/
 ```bash
 cd training
 
-# Train all models specified in config.yaml under 'models' section
-# This will train: yolov8n, yolo11n, and rtdetr-l (or whatever is configured)
+# Train all models specified in the 'models.list:' section of config.yaml
 python3 scripts/train.py --model all --batch-size 16 --workers 16 --epochs 100
 ```
 
-> **Note**: The `--model all` option trains the models specified in the `models` section of `config.yaml`. Edit that section to change which models are trained when using `--model all`.
+> [!TIP]
+> **To add more models to the batch training cycle**, simply add them to the `list:` in the `models.list:` section of `training/configs/config.yaml`. The script will iterate through each model in the list and train them sequentially.
 
 ---
 
@@ -204,6 +216,7 @@ The training and evaluation scripts generate several key plots:
 - **`confusion_matrix.png`**: Shows which classes are being confused with others. Diagonal is good.
 - **`BoxPR_curve.png`**: Precision-Recall curve. Top-right is better.
 - **`F1_curve.png`**: F1 score vs Confidence. Peak F1 shows the optimal confidence threshold.
+- **`training_summary.txt`**: A concise text summary containing the model name, dataset split sizes (train/val/test images), and the total training time.
 
 **Evaluation Plots (`post_eval/history_plots/`):**
 
@@ -221,7 +234,7 @@ The training and evaluation scripts generate several key plots:
 
 Models receive automatic quality ratings:
 
-- **Excellent** (mAP50-95 ≥0.70): Production-ready
+- **Excellent** (mAP50-95 ≥0.0): Production-ready
 - **Very Good** (≥0.60): High-quality detection
 - **Good** (≥0.50): Acceptable performance
 - **Fair** (≥0.40): Baseline performance
@@ -298,7 +311,7 @@ This pipeline works with any dataset in Ultralytics-supported formats (YOLO, COC
 
 **Required Structure:**
 
-```
+```text
 your_dataset/
 ├── train/           # Training images and labels
 ├── valid/           # Validation images and labels  
@@ -331,7 +344,7 @@ The repository includes the BFMC dataset as a reference:
 ### Class Distribution
 
 | Class | Count | Class | Count |
-|-------|-------|-------|-------|
+| ------- | ------- | ------- | ------- |
 | car | 2,450 | stop-sign | 156 |
 | pedestrian | 892 | priority-sign | 289 |
 | parking-spot | 1,234 | crosswalk-sign | 445 |
@@ -434,7 +447,7 @@ The default configuration is optimized for RTX 4090:
 ### Expected Results on BFMC Dataset
 
 | Model | mAP50 | mAP50-95 | FPS (4090) | Size |
-|-------|-------|----------|------------|------|
+| ------- | ------- | ---------- | ------------ | ------ |
 | YOLOv8n | ~0.85 | ~0.60 | ~800 | 6 MB |
 | YOLOv11n | ~0.87 | ~0.63 | ~750 | 5 MB |
 | RT-DETR-l | ~0.89 | ~0.68 | ~150 | 65 MB |
@@ -442,7 +455,7 @@ The default configuration is optimized for RTX 4090:
 ### Inference Speed (640x640 input)
 
 | Hardware | YOLOv8n | YOLOv11n | RT-DETR-l |
-|----------|---------|----------|-----------|
+| ---------- | --------- | ---------- | ----------- |
 | RTX 4090 | 800 FPS | 750 FPS | 150 FPS |
 | RTX 3090 | 600 FPS | 550 FPS | 120 FPS |
 | RTX 3060 | 400 FPS | 380 FPS | 80 FPS |
