@@ -12,50 +12,106 @@ A flexible training and evaluation pipeline for object detection models. Support
 
 ---
 
-## Features
+## Table of Contents
 
-- **Multi-Model Support**: Train any Ultralytics model (YOLOvX,RT-DETR, YOLOE, etc.)
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Installation Guide](#installation-guide)
+- [Project Structure](#project-structure)
+- [Architecture](#architecture)
+- [Configuration](#configuration)
+- [Training](#training)
+- [Evaluation](#evaluation)
+- [Inference](#inference)
+- [Model Export](#model-export)
+- [Dataset](#dataset)
+- [Utilities](#utilities)
+- [Performance Benchmarks](#performance-benchmarks)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [AI-Assisted Development](#ai-assisted-development)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+---
+
+## Overview
+
+This pipeline provides a complete workflow for training, evaluating, and deploying object detection models using the Ultralytics framework.
+
+**Purpose**: Simplify the process of training custom object detection models with state-of-the-art architectures.
+
+**Primary Use Cases**:
+
+- Autonomous driving perception systems
+- Smart city object detection
+- Custom object detection for any domain
+
+**Key Features**:
+
+- **Multi-Model Support**: Train any Ultralytics model (YOLOvX, RT-DETR, YOLOE, etc.)
 - **Comprehensive Evaluation**: Model comparison, per-class analysis, training history visualization
 - **Export Ready**: Convert models to ONNX, TensorRT, TFLite for deployment
 
 ---
 
-## Example Dataset
-
-This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as an example:
-
-- **Source**: [BFMC Dataset on Roboflow](https://universe.roboflow.com/team-driverles/bfmc-6btkg/dataset/13)
-- **License**: CC BY 4.0
-- **Use Case**: Autonomous driving / smart city navigation
-- **Classes**: 14 object classes (cars, pedestrians, traffic signs, etc.)
-
-**You can replace this with your own dataset** by downloading your dataset and updating the filepaths in `training/configs/config.yaml`.
-
----
-
 ## Quick Start
 
-### Prerequisites
+See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
 
-1. **Python 3.10+**: Ensure you have Python 3.10 or higher installed.
-2. **Requirements**: Install requirements using `cd training && pip install -r requirements.txt`.
-
-### Step-by-Step Guide
-
-1. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see Dataset section below)
-2. **Configure**: Edit `training/configs/config.yaml` with the correct dataset filepaths
-3. **Train**: `cd training && python3 scripts/train.py --model yolov8n --batch-size 16 --workers 16 --epochs 100`
-4. **Evaluate**: `cd training && python3 scripts/evaluate_checkpoint.py --model_dir results/your_model/`
-5. **Deploy**: Deploy on a source with `cd training && python3 scripts/inference.py --weights results/your_model/best.pt --export onnx`
-6. **Export**: Export to ONNX/TensorRT with `cd training && python3 scripts/inference.py --weights results/your_model/best.pt --source video.mp4 --delay 50`
+1. **Install Requirements** [RECOMMENDED]: `cd training && pip install -r requirements.txt`
+2. **Prepare Your Dataset**: Organize in Ultralytics-compatible format (see [Dataset](#dataset) section)
+3. **Configure**: Edit `training/configs/config.yaml` with your dataset filepaths
+4. **Train** [RECOMMENDED]: `python3 scripts/train.py --model yolov8n --batch-size 16 --workers 16 --epochs 100`
+5. **Evaluate**: `python3 scripts/evaluate_checkpoint.py --model_dir results/your_model/`
+6. **Export**: `python3 scripts/inference.py --weights results/your_model/best.pt --export onnx`
+7. **Deploy**: `python3 scripts/inference.py --weights results/your_model/best.pt --source video.mp4`
 
 ### Supported Models
 
 See [Ultralytics Models](https://docs.ultralytics.com/models/)
 
-### Example Detection Results
+---
 
-![YOLOv11 detection results on BFMC test images](assets/training/predictions_example.jpg)
+## Installation Guide
+
+### Prerequisites
+
+- **Python**: 3.10+ required
+- **PyTorch**: 2.0+ with CUDA support (for GPU training)
+- **Operating System**: Linux, Windows, or macOS
+
+### Core Requirements
+
+```bash
+cd training
+pip install -r requirements.txt
+```
+
+### Hardware Requirements
+
+**Minimum**:
+
+- CPU: 4+ cores
+- RAM: 16 GB
+- GPU: NVIDIA GPU with 8GB VRAM
+- Storage: 10 GB
+
+**Recommended**:
+
+- CPU: 8+ cores
+- RAM: 32 GB
+- GPU: RTX 3090/4090 (24GB VRAM)
+- Storage: 50 GB (SSD)
+
+### Optional: GPU Acceleration
+
+For NVIDIA GPUs, ensure CUDA toolkit is installed:
+
+```bash
+# Verify CUDA installation
+nvidia-smi
+```
 
 ---
 
@@ -69,7 +125,7 @@ bfmc_vision_simple/
 │   │   ├── evaluate.py             # Model comparison
 │   │   ├── evaluate_checkpoint.py  # Single model verification
 │   │   └── inference.py           # Inference & export
-│   │   
+│   │
 │   ├── configs/
 │   │   └── config.yaml          # Training configuration
 │   ├── utils/                   # Helper utilities
@@ -101,6 +157,61 @@ In config/config.yaml there are two output directories:
 
 > [!NOTE]
 > Currently, the `train.py` script creates the folder as a placeholder, but it's the inference/export workflows that typically populate it with ready-to-use models!
+
+---
+
+## Architecture
+
+The pipeline follows a linear workflow from data preparation to deployment:
+
+```txt
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        Object Detection Pipeline                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐              │
+│   │ Dataset  │───>│ Training │───>│Evaluation│───>│  Export  │              │
+│   │ (YOLO)   │    │ train.py │    │evaluate.py│   │inference.py│            │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘              │
+│        │               │               │               │                    │
+│        v               v               v               v                    │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐              │
+│   │data.yaml │    │  weights │    │  reports │    │ONNX/TRT  │              │
+│   │train/val/│    │  plots   │    │  metrics │    │  models  │              │
+│   │  test/   │    │  logs    │    │ heatmaps │    │          │              │
+│   └──────────┘    └──────────┘    └──────────┘    └──────────┘              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Processing Flow**:
+
+1. **Dataset**: Prepare images and labels in YOLO format with `data.yaml` configuration
+2. **Training**: Run `train.py` to train models with automatic validation and checkpoint saving
+3. **Evaluation**: Use `evaluate.py` or `evaluate_checkpoint.py` to analyze model performance
+4. **Export**: Convert trained models to deployment formats (ONNX, TensorRT, TFLite)
+
+---
+
+## Configuration
+
+Edit `training/configs/config.yaml` to adjust:
+
+- **Training parameters**: epochs, batch size, image size
+- **Model selection**: model variants (n/s/m/l/x)
+- **Augmentation**: data augmentation settings
+- **Inference**: confidence/IoU thresholds
+
+### RTX 4090 Optimized Settings [RECOMMENDED]
+
+The default configuration is optimized for RTX 4090:
+
+```yaml
+batch_size: 16    # Can increase to 32 for smaller models
+imgsz: 640        # Standard YOLO resolution
+amp: true         # Mixed precision for faster training
+cache: true       # Cache images in RAM
+```
 
 ---
 
@@ -264,7 +375,7 @@ The `inference.py` script allows you to detect objects in various inputs and exp
 3. **Visualize**: Display results with bounding boxes or save them to disk.
 4. **Control Speed**: Adjust playback speed for video inspection (`--delay`).
 
-### Run on Images/Videossources
+### Run on Images/Videos
 
 ```bash
 cd training
@@ -317,7 +428,7 @@ This pipeline works with any dataset in Ultralytics-supported formats (YOLO, COC
 ```text
 your_dataset/
 ├── train/           # Training images and labels
-├── valid/           # Validation images and labels  
+├── valid/           # Validation images and labels
 ├── test/            # Test images and labels (optional)
 └── data.yaml        # Dataset configuration file
 ```
@@ -415,36 +526,6 @@ plot_model_comparison(df, output_path="comparison.png")
 
 ---
 
-## Configuration
-
-Edit `training/configs/config.yaml` to adjust:
-
-- **Training parameters**: epochs, batch size, image size
-- **Model selection**: model variants (n/s/m/l/x)
-- **Augmentation**: data augmentation settings
-- **Inference**: confidence/IoU thresholds
-
-### RTX 4090 Optimized Settings
-
-The default configuration is optimized for RTX 4090:
-
-- `batch_size: 16` - Can increase to 32 for smaller models
-- `imgsz: 640` - Standard YOLO resolution
-- `amp: true` - Mixed precision for faster training
-- `cache: true` - Cache images in RAM
-
----
-
-## Training Visualizations
-
-![Training and validation metrics over 100 epochs](assets/training/training_curves.png)
-
-![Normalized confusion matrix showing per-class prediction accuracy](assets/training/confusion_matrix.png)
-
-![Per-class mAP50-95 comparison across models](assets/comparison/per_class_mAP_comparison.png)
-
----
-
 ## Performance Benchmarks
 
 ### Expected Results on BFMC Dataset
@@ -467,23 +548,34 @@ The default configuration is optimized for RTX 4090:
 
 ---
 
-## Hardware Requirements
+## Examples
 
-### For Training
+### Detection Results
 
-**Minimum**:
+![YOLOv11 detection results on BFMC test images](assets/training/predictions_example.jpg)
 
-- CPU: 4+ cores
-- RAM: 16 GB
-- GPU: NVIDIA GPU with 8GB VRAM
-- Storage: 10 GB
+### Training Visualizations
 
-**Recommended**:
+![Training and validation metrics over 100 epochs](assets/training/training_curves.png)
 
-- CPU: 8+ cores
-- RAM: 32 GB
-- GPU: RTX 3090/4090 (24GB VRAM)
-- Storage: 50 GB (SSD)
+![Normalized confusion matrix showing per-class prediction accuracy](assets/training/confusion_matrix.png)
+
+### Model Comparison
+
+![Per-class mAP50-95 comparison across models](assets/comparison/per_class_mAP_comparison.png)
+
+### Example Dataset
+
+This repository is configured with the **BFMC Dataset v13** (Team DriverIES) as an example:
+
+- **Source**: [BFMC Dataset on Roboflow](https://universe.roboflow.com/team-driverles/bfmc-6btkg/dataset/13)
+- **License**: CC BY 4.0
+- **Use Case**: Autonomous driving / smart city navigation
+- **Classes**: 14 object classes (cars, pedestrians, traffic signs, etc.)
+
+**You can replace this with your own dataset** by downloading your dataset and updating the filepaths in `training/configs/config.yaml`.
+
+---
 
 ## Troubleshooting
 
@@ -508,9 +600,14 @@ The default configuration is optimized for RTX 4090:
 
 ---
 
-## License
+## AI-Assisted Development
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**LLM Usage**: This project was developed with assistance from Claude (Anthropic). While efforts have been made to ensure code quality and correctness:
+
+- **Use with Caution**: Review and test all code thoroughly before deployment
+- **No Warranty**: Code is provided "as-is" without guarantees
+- **Verify Results**: Always validate model performance and system behavior
+- **Safety Critical**: Extra caution required for autonomous driving applications
 
 ---
 
@@ -523,13 +620,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## AI-Assisted Development
+## License
 
-**LLM Usage**: This project was developed with assistance from Claude (Anthropic). While efforts have been made to ensure code quality and correctness:
-
-- **Use with Caution**: Review and test all code thoroughly before deployment
-- **No Warranty**: Code is provided "as-is" without guarantees
-- **Verify Results**: Always validate model performance and system behavior
-- **Safety Critical**: Extra caution required for autonomous driving applications
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
